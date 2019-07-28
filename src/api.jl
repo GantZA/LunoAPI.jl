@@ -1,6 +1,5 @@
 const API_URL = "https://api.mybitx.com/api/1/"
 
-
 function set_auth_token(token="")
     if token == ""
         auth_token = readline("src/auth_token.txt")
@@ -9,6 +8,7 @@ function set_auth_token(token="")
         ENV["luno_auth_token"] = base64encode(token)
     end
 end
+
 
 function get_auth_token(token="")
     if get(ENV, "luno_auth_token", false) == false
@@ -57,6 +57,7 @@ function get_balance(token="")
     return BTC, ZAR, price_dict
 end
 
+
 function post_limit_order(token="", pair="XBTZAR", type="ASK", price=300000,
     volume=0.0005, post_only=true)
 
@@ -75,6 +76,41 @@ function post_limit_order(token="", pair="XBTZAR", type="ASK", price=300000,
         println("Order sent successfully")
     end
 end
+
+
+"""
+    execute_market_order(token="", pair="XBTZAR", type="SELL", volume=0.0005)
+
+type can be "SELL" to sell Bitcoin or "BUY" to buy Bitcoin.
+If type is "SELL" then the amount of Bitcoin to sell must be set using the
+sell_volume argument.
+
+If type is "BUY" then the amount of local currency to spend must be set using
+the buy_volume argument
+"""
+function execute_market_order(token="", pair="XBTZAR", type="SELL",
+     buy_volume=100, sell_volume=0.0005)
+
+     auth_dict = get_auth_token(token)
+
+     query_dict = Dict(
+         "pair" => pair,
+         "type" => type)
+
+    if type == "SELL"
+        query_dict["base_volume"] = string(sell_volume)
+    else
+        query_dict["counter_volume"] = string(buy_volume)
+    end
+
+     resp = HTTP.post(API_URL * "marketorder";
+         headers = auth_dict,
+         query = query_dict)
+     if resp.status == 200
+         println("Market order executed successfully")
+     end
+end
+
 
 function stop_all_orders(token="")
     auth_dict = get_auth_token(token)
@@ -101,5 +137,3 @@ function stop_all_orders(token="")
         println("No orders pending")
     end
 end
-
-stop_all_orders()
