@@ -57,6 +57,25 @@ function get_balance(token="")
     return BTC, ZAR, price_dict
 end
 
+function post_limit_order(token="", pair="XBTZAR", type="ASK", price=300000,
+    volume=0.0005, post_only=true)
+
+    auth_dict = get_auth_token(token)
+    query_dict = Dict(
+        "pair" => pair,
+        "type" => type,
+        "volume" => string(volume),
+        "price" => string(price),
+        "post_only" => post_only)
+
+    resp = HTTP.post(API_URL * "postorder";
+        headers = auth_dict,
+        query = query_dict)
+    if resp.status == 200
+        println("Order sent successfully")
+    end
+end
+
 function stop_all_orders(token="")
     auth_dict = get_auth_token(token)
     query_dict = Dict("pair" => "XBTZAR", "state" => "PENDING")
@@ -69,7 +88,7 @@ function stop_all_orders(token="")
             orderID = Dict("order_id" => order["order_id"])
             HTTP.post(API_URL * "stoporder";
                 headers = auth_dict, query = orderID)
-            
+
             order_id = orderID["order_id"]
             pair = order["pair"]
             volume = order["limit_volume"]
